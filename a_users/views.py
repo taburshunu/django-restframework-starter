@@ -5,94 +5,78 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import redirect_to_login
+from rest_framework.views import APIView, Response
+from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
+from rest_framework.decorators import api_view
+from .serializers import *
 from .forms import *
 
-def profile_view(request, username=None):
-    if username:
-        profile = get_object_or_404(User, username=username).profile
-    else:
-        try:
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username=None):
+        if username:
+            profile = get_object_or_404(User, username=username).profile
+        else:
+            if not request.user.is_authenticated:
+                return Response({"detail": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
             profile = request.user.profile
-        except:
-            return redirect_to_login(request.get_full_path())
-    return render(request, 'a_users/profile.html', {'profile':profile})
+
+        serializer = ProfileSerializer(profile) 
+        return Response(serializer.data)
+    
 
 
 @login_required
+@api_view(['GET', 'POST'])
 def profile_edit_view(request):
-    form = ProfileForm(instance=request.user.profile)  
-    
+    profile = request.user.profile
+
     if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        if form.is_valid():
-            form.save()
-            return redirect('profile')
-        
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return redirect('profile')  # Redirect after saving
+
+        return Response(serializer.errors, status=400)  # Return errors if invalid
+
+    serializer = ProfileSerializer(profile)
+    
     if request.path == reverse('profile-onboarding'):
         onboarding = True
     else:
         onboarding = False
-      
-    return render(request, 'a_users/profile_edit.html', { 'form':form, 'onboarding':onboarding })
 
+    return Response({"data": serializer.data, "onboarding": onboarding})
 
 @login_required
+@api_view(['GET'])
 def profile_settings_view(request):
-    return render(request, 'a_users/profile_settings.html')
-
+    if not request.user.email:
+        pass
+    else:
+        return Response({"message": "Profile settings view", "user": request.user.username, "email": request.user.email})
 
 @login_required
+@api_view(['GET', 'POST'])
 def profile_emailchange(request):
-    
-    if request.htmx:
-        form = EmailForm(instance=request.user)
-        return render(request, 'partials/email_form.html', {'form':form})
-    
-    if request.method == 'POST':
-        form = EmailForm(request.POST, instance=request.user)
+    if request.headers.get("HX-Request"):  # HTMX detection
+        serializer = EmailSerializer(instance=request.user)
 
-        if form.is_valid():
-            
-            # Check if the email already exists
-            email = form.cleaned_data['email']
-            if User.objects.filter(email=email).exclude(id=request.user.id).exists():
-                messages.warning(request, f'{email} is already in use.')
-                return redirect('profile-settings')
-            
-            form.save() 
-            
-            # Then Signal updates emailaddress and set verified to False
-            
-            # Then send confirmation email 
-            send_email_confirmation(request, request.user)
-            
-            return redirect('profile-settings')
-        else:
-            messages.warning(request, 'Email not valid or already in use')
-            return redirect('profile-settings')
-        
-    return redirect('profile-settings')
+        return Response({"serializer": serializer.data})  # Return serialized data
+
+    return Response({"error": "Invalid request"}, status=400)
 
 
+@api_view(['GET', 'POST'])
 @login_required
 def profile_usernamechange(request):
-    if request.htmx:
-        form = UsernameForm(instance=request.user)
-        return render(request, 'partials/username_form.html', {'form':form})
-    
-    if request.method == 'POST':
-        form = UsernameForm(request.POST, instance=request.user)
-        
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Username updated successfully.')
-            return redirect('profile-settings')
-        else:
-            messages.warning(request, 'Username not valid or already in use')
-            return redirect('profile-settings')
-    
-    return redirect('profile-settings')    
+    if request.headers.get("HX-Request"):
+        serializer = UsernameSerializer(instance=request.user)
+        return Response({"serializer": serializer.data})  # Return serialized data
+
+    return Response({"error": "Invalid request"}, status=400)
 
 
 @login_required
@@ -104,10 +88,7 @@ def profile_emailverify(request):
 @login_required
 def profile_delete_view(request):
     user = request.user
-    if request.method == "POST":
-        logout(request)
-        user.delete()
-        messages.success(request, 'Account deleted, what a pity')
-        return redirect('home')
-    
-    return render(request, 'a_users/profile_delete.html')
+    logout(request)
+    user.delete()
+    messages.success(request, 'Account deleted, what a pity')
+    return redirect('home')
