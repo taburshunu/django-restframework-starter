@@ -15,6 +15,7 @@ git clone https://github.com/taburshunu/django-restframework-starter/.git . && r
 ```
 python3 -m venv venv
 source venv/bin/activate
+```
 
 ###### # Mac
 ```
