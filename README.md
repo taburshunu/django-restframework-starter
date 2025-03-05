@@ -5,70 +5,89 @@
 Download the zip file **or** use Git (requires Git to be installed):  
 
 ```sh
-git clone https://github.com/taburshunu/django-restframework-starter/.git . && rm -rf .git
+git clone https://github.com/taburshunu/django-restframework-starter.git . && rm -rf .git
+```
 
-<br>
-⚙️ Setup
-🔹 1️⃣ Create a Virtual Environment
-####   Linux & Mac
+---
 
+## ⚙️ Setup  
+
+### 🔹 1️⃣ Create a Virtual Environment  
+
+#### Linux & Mac  
+```sh
 python3 -m venv venv  
 source venv/bin/activate  
+```
 
-Windows
-
+#### Windows  
+```sh
 python3 -m venv venv  
-.\venv\Scripts\activate.bat  
+.env\Scriptsctivate.bat  
+```
 
-<br>
-🔹 2️⃣ Install Dependencies
+---
 
+### 🔹 2️⃣ Install Dependencies  
+```sh
 pip install --upgrade pip  
 pip install -r requirements.txt  
+```
 
-<br>
-🔹 3️⃣ Set Up PostgreSQL
-🛠️ Install PostgreSQL (Skip if already installed)
+---
 
-    Arch Linux:
+### 🔹 3️⃣ Set Up PostgreSQL  
 
+#### 🛠️ Install PostgreSQL (Skip if already installed)  
+
+**Arch Linux:**  
+```sh
 sudo pacman -S postgresql
+```
 
-Ubuntu/Debian:
+**Ubuntu/Debian:**  
+```sh
+sudo apt update && sudo apt install postgresql postgresql-contrib
+```
 
-    sudo apt update && sudo apt install postgresql postgresql-contrib
+**Windows:** Download from the [official PostgreSQL site](https://www.postgresql.org/download/).  
 
-    Windows: Download from the official PostgreSQL site.
-
-Start PostgreSQL:
-
+#### Start PostgreSQL:  
+```sh
 sudo systemctl enable --now postgresql
+```
 
-<br>
-📌 Create Database & User
+---
 
-Run:
+### 📌 Create Database & User  
 
+Run:  
+```sh
 sudo -u postgres psql
+```
 
-Inside psql, execute:
-
+Inside psql, execute:  
+```sql
 CREATE DATABASE mydatabase;  
 CREATE USER myuser WITH PASSWORD 'mypassword';  
 ALTER USER myuser WITH CREATEROLE CREATEDB;  
 GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;  
 GRANT ALL ON SCHEMA public TO myuser;  
 ALTER DATABASE mydatabase OWNER TO myuser;
+```
 
-Exit psql:
-
+Exit psql:  
+```sh
 \q
+```
 
-<br>
-🔧 Update Django Settings
+---
 
-Modify settings.py:
+### 🔧 Update Django Settings  
 
+Modify `settings.py`:  
+
+```python
 DATABASES = {  
     'default': {  
         'ENGINE': 'django.db.backends.postgresql',  
@@ -79,46 +98,60 @@ DATABASES = {
         'PORT': '5432',  
     }  
 }
+```
 
-<br>
-🔹 4️⃣ Migrate Database
+---
 
+### 🔹 4️⃣ Migrate Database  
+```sh
 python manage.py migrate  
 python manage.py createsuperuser  
+```
 
-<br>
-🔹 5️⃣ Run Application
+---
 
+### 🔹 5️⃣ Run Application  
+```sh
 python manage.py runserver  
+```
 
-<br>
-🔹 6️⃣ Generate Secret Key (For Deployment)
+---
 
+### 🔹 6️⃣ Generate Secret Key (For Deployment)  
+
+```sh
 python manage.py shell
+```
+Then, inside the shell:  
+```python
 from django.core.management.utils import get_random_secret_key  
 print(get_random_secret_key())  
 exit()
-
-Add this key to your .env or settings.py.
-<br>
-🛠 Troubleshooting
-❌ "Permission denied for schema public"
-
-Run inside psql:
-
-GRANT ALL ON SCHEMA public TO myuser;
-
-❌ PostgreSQL Service Not Running
-
-Check the status:
-
-sudo systemctl status postgresql
-
-If it's inactive, start it:
-
-sudo systemctl restart postgresql
-
-💡 Need Help?
-
-Open an issue in the repository! 🚀
 ```
+
+Add this key to your `.env` or `settings.py`.
+
+---
+
+## 🛠 Troubleshooting  
+
+### ❌ "Permission denied for schema public"  
+Run inside psql:  
+```sql
+GRANT ALL ON SCHEMA public TO myuser;
+```
+
+### ❌ PostgreSQL Service Not Running  
+Check the status:  
+```sh
+sudo systemctl status postgresql
+```
+If it's inactive, start it:  
+```sh
+sudo systemctl restart postgresql
+```
+
+---
+
+## 💡 Need Help?  
+Open an issue in the repository! 🚀  
