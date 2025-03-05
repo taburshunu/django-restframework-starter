@@ -28,7 +28,29 @@ class ProfileView(APIView):
         serializer = ProfileSerializer(profile) 
         return Response(serializer.data)
 
+class ProfileRegister(APIView):
+    permission_classes = [AllowAny]
 
+    def post(self, request):
+        email = request.data.get("email")
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        if not email or not username or not password:
+            return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already in use"}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(username=username, email=email, password=password)
+        serializer = UsernameSerializer(user)
+
+        return Response({
+            "message": "Registration successful",
+            "user": serializer.data
+        }, status=status.HTTP_201_CREATED)
 class ProfileLogin(APIView):
     permission_classes = [AllowAny]
 
@@ -39,24 +61,17 @@ class ProfileLogin(APIView):
 
         if not username or not password:
             return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Authenticate with username and password
         user = authenticate(username=username, password=password)
 
         if user:
-            # Start a session
-            login(request, user)  # Logs the user in and sets sessionid
-
-            # Get the session ID
+            login(request, user)
             session_id = request.session.session_key
-
-            # Serialize user data
             serializer = UsernameSerializer(user)
 
             return Response({
                 "message": "Login successful",
                 "user": serializer.data,
-                "sessionid": session_id  # Returning session ID
+                "sessionid": session_id 
             }, status=status.HTTP_200_OK)
 
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -69,9 +84,8 @@ def profile_edit_view(request):
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return redirect('profile')  # Redirect after saving
-
-        return Response(serializer.errors, status=400)  # Return errors if invalid
+            return redirect('profile')  
+        return Response(serializer.errors, status=400) 
 
     serializer = ProfileSerializer(profile)
     
