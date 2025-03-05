@@ -51,6 +51,16 @@ class ProfileRegister(APIView):
             "message": "Registration successful",
             "user": serializer.data
         }, status=status.HTTP_201_CREATED)
+
+class ProfileDelete(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
 class ProfileLogin(APIView):
     permission_classes = [AllowAny]
 
@@ -131,11 +141,3 @@ def profile_emailverify(request):
     send_email_confirmation(request, request.user)
     return redirect('profile-settings')
 
-
-@login_required
-def profile_delete_view(request):
-    user = request.user
-    logout(request)
-    user.delete()
-    messages.success(request, 'Account deleted, what a pity')
-    return redirect('home')
