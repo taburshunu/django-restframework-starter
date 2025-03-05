@@ -121,4 +121,4 @@ sudo systemctl restart postgresql
 💡 Need Help?
 
 Open an issue in the repository! 🚀
-
+```
