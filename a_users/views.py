@@ -10,7 +10,7 @@ from django.contrib.auth.views import redirect_to_login
 from rest_framework.views import APIView, Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib import messages
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from .serializers import *
 from .forms import *
 
@@ -64,6 +64,8 @@ class ProfileDelete(APIView):
 class ProfileLogin(APIView):
     permission_classes = [AllowAny]
 
+    
+
     def post(self, request):
         email = request.data.get("email")
         username = request.data.get("username")
@@ -106,14 +108,22 @@ def profile_edit_view(request):
 
     return Response({"data": serializer.data, "onboarding": onboarding})
 
-@login_required
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def profile_settings_view(request):
-    if not request.user.email:
-        pass
-    else:
-        return Response({"message": "Profile settings view", "user": request.user.username, "email": request.user.email})
+    if request.method == 'DELETE':
+        user = request.user
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
+    if not request.user.email:
+        return Response({"error": "User email not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({
+        "message": "Profile settings view",
+        "user": request.user.username,
+        "email": request.user.email
+    }, status=status.HTTP_200_OK)
 
 @login_required
 @api_view(['GET', 'POST'])
