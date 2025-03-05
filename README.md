@@ -23,7 +23,7 @@ source venv/bin/activate
 #### Windows  
 ```sh
 python3 -m venv venv  
-.venv\Scripts\activate.bat  
+.env\Scripts\activate.bat  
 ```
 
 ---
