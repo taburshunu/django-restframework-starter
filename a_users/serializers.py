@@ -2,9 +2,6 @@ from rest_framework import serializers
 from .models import Profile
 from django.contrib.auth.models import User
 
-from rest_framework import serializers
-from .models import Profile
-
 class ProfileSerializer(serializers.ModelSerializer):
     displayname = serializers.CharField(
         style={'placeholder': 'Add display name'}
@@ -22,11 +19,18 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class EmailSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
+
     class Meta:
         model = User
         fields = ['email']
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
 class UsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username']
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
