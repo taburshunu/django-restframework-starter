@@ -10,7 +10,7 @@ git clone https://github.com/taburshunu/django-restframework-starter/.git . && r
 <br>
 ⚙️ Setup
 🔹 1️⃣ Create a Virtual Environment
-Linux & Mac
+####   Linux & Mac
 
 python3 -m venv venv  
 source venv/bin/activate  
